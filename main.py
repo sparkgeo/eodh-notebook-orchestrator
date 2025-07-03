@@ -8,7 +8,9 @@ app = FastAPI()
 
 
 @app.get("/run-notebook")
-async def run_notebook(cog_url: str, bbox: str = None):
+async def run_notebook(
+    cog_url: str, bbox: str = None, notebook: str = "ndvi_calculation.ipynb"
+):
     output_id = str(uuid.uuid4())
     output_path = f"notebooks/output-{output_id}.ipynb"
     os.makedirs("notebooks", exist_ok=True)
@@ -20,7 +22,7 @@ async def run_notebook(cog_url: str, bbox: str = None):
         parameters["bbox"] = bbox_values
 
     pm.execute_notebook(
-        "templates/ndvi_calculation.ipynb",
+        f"templates/{notebook}",
         output_path,
         parameters=parameters,
         prepare_only=True,
