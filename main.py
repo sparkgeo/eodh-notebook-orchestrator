@@ -3,14 +3,24 @@ from fastapi.responses import RedirectResponse
 import papermill as pm
 import uuid
 import os
+import requests
 
 app = FastAPI()
 
+CONFIG_URL = "https://raw.githubusercontent.com/geodowd/notebook_config/refs/heads/main/config.json"
 
-@app.get("/run-notebook")
-async def run_notebook(
-    cog_url: str, bbox: str = None, notebook: str = "ndvi_calculation.ipynb"
-):
+
+def get_notebook_url_by_id(notebook_id: str) -> str:
+    resp = requests.get(CONFIG_URL)
+    config = resp.json()
+    for nb in config["notebooks"]:
+        if nb["id"] == notebook_id:
+            return nb["file"]
+    raise ValueError(f"Notebook id '{notebook_id}' not found in config.")
+
+
+@app.get("/run/notebook/{id}")
+async def run_notebook(id: str, cog_url: str, bbox: str = None):
     output_id = str(uuid.uuid4())
     output_path = f"notebooks/output-{output_id}.ipynb"
     os.makedirs("notebooks", exist_ok=True)
@@ -21,8 +31,11 @@ async def run_notebook(
         bbox_values = [float(x) for x in bbox.split(",")]
         parameters["bbox"] = bbox_values
 
+    # Get notebook URL from config
+    notebook_url = get_notebook_url_by_id(id)
+
     pm.execute_notebook(
-        f"templates/{notebook}",
+        notebook_url,  # This can be a URL!
         output_path,
         parameters=parameters,
         prepare_only=True,
@@ -35,5 +48,5 @@ async def run_notebook(
 @app.get("/view-notebook/{notebook_id}")
 async def view_notebook(notebook_id: str):
     return RedirectResponse(
-        url=f"http://localhost:8889/lab/tree/notebooks/output-{notebook_id}.ipynb"
+        url=f"http://localhost:8889/lab/tree/output-{notebook_id}.ipynb"
     )
