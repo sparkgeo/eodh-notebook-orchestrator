@@ -1,0 +1,7 @@
+{
+    "collections": {
+        "sentinel2_ard": {
+            "template": "sentinel2_template.xml"
+        }
+    }
+}
