@@ -1,11 +1,25 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 import papermill as pm
 import uuid
 import os
 import requests
+from create_qlr.create_qlr import create_qlr
+from fastapi.responses import Response
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],  # Frontend origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 CONFIG_URL = "https://raw.githubusercontent.com/geodowd/notebook_config/refs/heads/main/config.json"
 
@@ -63,3 +77,19 @@ async def view_notebook(notebook_id: str):
     return RedirectResponse(
         url=f"http://localhost:8889/lab/tree/output-{notebook_id}.ipynb"
     )
+
+
+@app.get("/qlr")
+async def get_qlr(url: str, collection: str):
+    print(f"/qlr endpoint called with url={url}, collection={collection}")  # Debug log
+    try:
+        qlr_xml = create_qlr(url, collection)
+        print("QLR XML successfully created.")  # Debug log
+        return Response(
+            content=qlr_xml,
+            media_type="application/xml",
+            headers={"Content-Disposition": 'attachment; filename="layer.qlr"'},
+        )
+    except Exception as e:
+        print("QLR endpoint error:", e)  # Debug log
+        return Response(str(e), status_code=400)

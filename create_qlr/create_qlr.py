@@ -1,6 +1,7 @@
 import rasterio
 from rasterio.warp import transform_bounds
-from get_template import get_template_path
+from create_qlr.get_template import get_template_path
+import os
 
 
 def get_cog_metadata(url):
@@ -8,6 +9,7 @@ def get_cog_metadata(url):
     Reads a COG's metadata from a given URL.
     Returns a dictionary with extent, wgs84_extent, crs info, width, height, band count, and dtype.
     """
+    print(f"[get_cog_metadata] Called with url: {url}")  # Debug log
     with rasterio.open(url) as src:
         bounds = src.bounds
         crs = src.crs
@@ -20,6 +22,9 @@ def get_cog_metadata(url):
         crs_wkt = crs.to_wkt() if crs else None
         crs_proj4 = crs.to_proj4() if crs else None
         crs_epsg = crs.to_epsg() if crs else None
+        print(
+            f"[get_cog_metadata] Metadata: bounds={bounds}, crs={crs}, width={width}, height={height}, count={count}, dtype={dtype}, wgs84_bounds={wgs84_bounds}, crs_wkt={crs_wkt}, crs_proj4={crs_proj4}, crs_epsg={crs_epsg}"
+        )  # Debug log
         return {
             "extent": bounds,
             "wgs84_extent": wgs84_bounds,
@@ -40,6 +45,9 @@ def generate_qlr(metadata, url, layer_id, layer_name=None, template_path=None):
     """
     import os
 
+    print(
+        f"[generate_qlr] Called with url: {url}, layer_id: {layer_id}, layer_name: {layer_name}, template_path: {template_path}"
+    )  # Debug log
     if layer_name is None:
         layer_name = os.path.basename(url)
     extent = metadata["extent"]
@@ -51,6 +59,7 @@ def generate_qlr(metadata, url, layer_id, layer_name=None, template_path=None):
         raise ValueError("template_path is required")
     with open(template_path, "r") as f:
         template = f.read()
+    print("[generate_qlr] Filling template with metadata and url.")  # Debug log
     return template.format(
         datasource=f"/vsicurl/{url}",
         layer_id=layer_id,
@@ -78,10 +87,20 @@ def write_qlr_file(qlr_text, output_path):
 
 
 def create_qlr(url, collection):
-    meta = get_cog_metadata(url)
-    template_path = get_template_path(collection)
-    qlr = generate_qlr(meta, url, "test", "test", template_path=template_path)
-    return qlr
+    print(f"[create_qlr] Called with url: {url}, collection: {collection}")  # Debug log
+    try:
+        meta = get_cog_metadata(url)
+        template_path = get_template_path(collection)
+        print(f"[create_qlr] Using template_path: {template_path}")  # Debug log
+        layer_name = os.path.basename(url)
+        qlr = generate_qlr(
+            meta, url, layer_name, layer_name, template_path=template_path
+        )
+        print("[create_qlr] QLR XML generated successfully.")  # Debug log
+        return qlr
+    except Exception as e:
+        print(f"[create_qlr] Error: {e}")  # Debug log
+        raise
 
 
 if __name__ == "__main__":

@@ -2,6 +2,9 @@
     "collections": {
         "sentinel2_ard": {
             "template": "sentinel2_template.xml"
+        },
+        "sentinel1_ard": {
+            "template": "sentinel1_template.xml"
         }
     }
 }
