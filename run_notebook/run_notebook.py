@@ -13,8 +13,8 @@ def get_notebook_config(notebook_id: str) -> Dict[str, Any]:
     """Get notebook configuration by ID."""
     resp = requests.get(CONFIG_URL)
     config = resp.json()
-    # The config is a list of notebook configurations, not a dict with "notebooks" key
-    notebook = next((nb for nb in config if nb["id"] == notebook_id), None)
+    # Only look at notebook type items and check if id exists
+    notebook = next((nb for nb in config if nb.get("type") == "notebook" and nb.get("id") == notebook_id), None)
     if not notebook:
         raise ValueError(f"Notebook id '{notebook_id}' not found in config.")
     return notebook
