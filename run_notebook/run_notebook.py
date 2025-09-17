@@ -14,7 +14,14 @@ def get_notebook_config(notebook_id: str) -> Dict[str, Any]:
     resp = requests.get(CONFIG_URL)
     config = resp.json()
     # Only look at notebook type items and check if id exists
-    notebook = next((nb for nb in config if nb.get("type") == "notebook" and nb.get("id") == notebook_id), None)
+    notebook = next(
+        (
+            nb
+            for nb in config
+            if nb.get("type") == "notebook" and nb.get("id") == notebook_id
+        ),
+        None,
+    )
     if not notebook:
         raise ValueError(f"Notebook id '{notebook_id}' not found in config.")
     return notebook
@@ -70,7 +77,7 @@ def execute_notebook(notebook_id: str, request: Request) -> str:
         str: The output notebook ID for viewing
     """
     output_id = str(uuid.uuid4())
-    output_path = f"notebooks/output-{output_id}.ipynb"
+    output_path = f"notebooks/{notebook_id}-{output_id}.ipynb"
     os.makedirs("notebooks", exist_ok=True)
 
     # Get notebook config and inputSpec
@@ -95,6 +102,6 @@ def execute_notebook(notebook_id: str, request: Request) -> str:
     return output_id
 
 
-def get_view_notebook_url(notebook_id: str) -> str:
+def get_view_notebook_url(notebook_id: str, output_id: str) -> str:
     """Generate the URL for viewing a notebook."""
-    return f"http://localhost:8889/lab/tree/output-{notebook_id}.ipynb"
+    return f"http://localhost:8889/lab/tree/{notebook_id}-{output_id}.ipynb"

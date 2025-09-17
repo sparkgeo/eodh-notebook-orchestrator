@@ -22,12 +22,12 @@ app.add_middleware(
 @app.get("/run/notebook/{id}")
 async def run_notebook(id: str, request: Request):
     output_id = execute_notebook(id, request)
-    return RedirectResponse(url=f"/view-notebook/{output_id}")
+    return RedirectResponse(url=f"/view-notebook/{id}/{output_id}")
 
 
-@app.get("/view-notebook/{notebook_id}")
-async def view_notebook(notebook_id: str):
-    return RedirectResponse(url=get_view_notebook_url(notebook_id))
+@app.get("/view-notebook/{notebook_id}/{output_id}")
+async def view_notebook(notebook_id: str, output_id: str):
+    return RedirectResponse(url=get_view_notebook_url(notebook_id, output_id))
 
 
 @app.get("/qlr")
