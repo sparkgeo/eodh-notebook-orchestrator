@@ -100,25 +100,24 @@
       <mapTip enabled="1"></mapTip>
       <pipe-data-defined-properties/>
       <pipe>
-        <rasterrenderer alphaBand="-1" nodataColor="" type="multibandcolor" redBand="1" greenBand="2" blueBand="3">
+        <rasterrenderer alphaBand="-1" nodataColor="" type="multibandcolor" redBand="3" greenBand="2" blueBand="1">
         <redContrastEnhancement>
-          <minValue>22</minValue>
-          <maxValue>541</maxValue>
+          <minValue>0</minValue>
+          <maxValue>256</maxValue>
           <algorithm>StretchToMinimumMaximum</algorithm>
         </redContrastEnhancement>
         <greenContrastEnhancement>
-          <minValue>30</minValue>
-          <maxValue>548</maxValue>
+          <minValue>0</minValue>
+          <maxValue>256</maxValue>
           <algorithm>StretchToMinimumMaximum</algorithm>
         </greenContrastEnhancement>
         <blueContrastEnhancement>
-          <minValue>18</minValue>
-          <maxValue>577</maxValue>
+          <minValue>0</minValue>
+          <maxValue>256</maxValue>
           <algorithm>StretchToMinimumMaximum</algorithm>
         </blueContrastEnhancement>
       </rasterrenderer>
       <brightnesscontrast contrast="0" brightness="0" gamma="1"/>
-      <huesaturation colorizeRed="255" colorizeGreen="128" colorizeOn="0" colorizeStrength="100" grayscaleMode="0" colorizeBlue="128" invertColors="0" saturation="0"/>
       <rasterresampler maxOversampling="2"/>
       <resamplingStage>resamplingFilter</resamplingStage>
     </pipe>

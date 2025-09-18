@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, Response
@@ -194,10 +195,14 @@ async def view_notebook(notebook_id: str, output_id: str):
 async def get_qlr(url: str, collection: str):
     try:
         qlr_xml = create_qlr(str(url), collection)
+        logger.info(f"QLR created successfully for {url} with collection {collection}")
+        output_filename = Path(url).name + ".qlr"
         return Response(
             content=qlr_xml,
             media_type="application/xml",
-            headers={"Content-Disposition": 'attachment; filename="layer.qlr"'},
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_filename}"'
+            },
         )
     except ValueError as e:
         logger.error(f"QLR generation failed: {e}")

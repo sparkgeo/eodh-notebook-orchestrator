@@ -141,13 +141,3 @@ def create_qlr(url: str, collection: str) -> str:
     except Exception as e:
         logger.error(f"QLR creation failed: {e}")
         raise
-
-
-if __name__ == "__main__":
-    # Example usage
-    url = "https://dap.ceda.ac.uk/neodc/sentinel_ard/data/sentinel_2/2025/07/02/S2C_20250702_latn528lonw0037_T30UVD_ORB037_20250702133100_utm30n_osgb_vmsk_sharp_rad_srefdem_stdsref.tif"
-    qlr = create_qlr(url, "sentinel2_ard")
-    print(qlr)
-    # Save to file
-    output_path = "test_output.qlr"
-    write_qlr_file(qlr, output_path)
