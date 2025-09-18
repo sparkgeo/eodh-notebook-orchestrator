@@ -4,10 +4,9 @@ import logging
 from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel, HttpUrl, validator
 from create_qlr.create_qlr import create_qlr
-from run_notebook.run_notebook import execute_notebook, get_view_notebook_url
 
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -27,6 +26,9 @@ app = FastAPI(
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"
 ).split(",")
+
+# Add wildcard pattern for eodatahub.org.uk subdomains
+ALLOWED_ORIGINS.extend(["https://*.eodatahub.org.uk", "https://eodatahub.org.uk"])
 
 app.add_middleware(
     CORSMiddleware,
@@ -122,73 +124,6 @@ class QLRRequest(BaseModel):
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "version": "0.1.0"}
-
-
-@app.get("/run/notebook/{notebook_id}")
-async def run_notebook(notebook_id: str, request: Request):
-    """Execute a notebook with the given ID and request parameters"""
-    try:
-        # Validate notebook ID
-        if not notebook_id or not notebook_id.strip():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Notebook ID cannot be empty",
-            )
-
-        # Sanitize notebook ID (basic security check)
-        if not notebook_id.replace("-", "").replace("_", "").isalnum():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid notebook ID format",
-            )
-
-        output_id = execute_notebook(notebook_id.strip(), request)
-        return RedirectResponse(url=f"/view-notebook/{notebook_id}/{output_id}")
-
-    except ValueError as e:
-        logger.error(f"Notebook execution failed: {e}")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        logger.error(f"Unexpected error during notebook execution: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
-
-@app.get("/view-notebook/{notebook_id}/{output_id}")
-async def view_notebook(notebook_id: str, output_id: str):
-    """Generate URL for viewing a notebook"""
-    try:
-        # Validate inputs
-        if not notebook_id or not output_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Notebook ID and output ID are required",
-            )
-
-        # Sanitize inputs
-        if not notebook_id.replace("-", "").replace("_", "").isalnum():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid notebook ID format",
-            )
-
-        if not output_id.replace("-", "").isalnum():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid output ID format",
-            )
-
-        view_url = get_view_notebook_url(notebook_id, output_id)
-        return RedirectResponse(url=view_url)
-
-    except Exception as e:
-        logger.error(f"Error generating view URL: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error generating view URL",
-        )
 
 
 @app.get("/qlr")
